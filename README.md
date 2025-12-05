@@ -1,62 +1,48 @@
 🔒 End-to-End Encrypted Chat Relay (CLI Version)
+
 A Secure, Multi-Threaded Peer-to-Peer Messaging System Built in Python
 
-This project demonstrates how modern secure messengers implement true End-to-End Encryption (E2EE) using Ephemeral Elliptic Curve Diffie-Hellman (ECDH), HKDF key derivation, and AES-256-GCM authenticated encryption, while the server remains completely blind to message content.
+This project demonstrates how secure messengers implement true End-to-End Encryption (E2EE) using Ephemeral ECDH, HKDF, and AES-256-GCM, while the relay server remains completely blind to message content.
 
 🚀 Features
 🔐 True End-to-End Encryption
 
 Messages are encrypted before leaving the client.
-The relay server receives only encrypted bytes.
+The server handles only ciphertext.
 
 🔄 Perfect Forward Secrecy
 
-Each session uses fresh Ephemeral ECDH (SECP256R1) keys.
-Even if a session key leaks, all past messages remain protected.
+Fresh Ephemeral ECDH (SECP256R1) keys for every session.
 
-🛡️ Authenticated Encryption (AES-256-GCM)
+🛡 AES-256-GCM Authenticated Encryption
 
-AES-GCM provides:
+Confidentiality + Integrity + Tamper detection.
 
-Confidentiality
+🛰 Blind Relay Server
 
-Integrity
+Server cannot decrypt or inspect anything.
 
-Tamper detection
+🧵 Multi-threaded Client
 
-🛰️ Blind Relay Server
-
-Server acts only as a dumb pipe:
-
-No decryption
-
-No key storage
-
-No message inspection
-
-🧵 Multi-Threaded Client
-
-Real-time encrypted chat with separate threads for:
-
-Sending messages
-
-Receiving messages
+Handles sending + receiving simultaneously.
 
 🧰 Technology Stack
-Component	Technology
+Component	Tech
 Language	Python 3
 Networking	socket, threading
-Key Exchange	ECDH (SECP256R1)
+ECC Key Exchange	SECP256R1
 KDF	HKDF (SHA-256)
 Encryption	AES-256-GCM
-Library	cryptography (hazmat)
+Crypto Library	cryptography
 ⚙️ How to Run (CLI Mode)
 
-This system includes:
+This application runs using:
 
 1 Relay Server
 
 2 or more Encrypted Clients
+
+Below is the fully fixed version — all commands are in proper GitHub code blocks.
 
 1️⃣ Install Dependencies
 pip install cryptography
@@ -87,7 +73,7 @@ Open another terminal:
 python secure_client.py --host 127.0.0.1 --port 5000 --name Bob
 
 
-Handshake will automatically complete:
+Handshake automatically completes:
 
 [SUCCESS] Secure Channel Established!
 
@@ -105,104 +91,61 @@ Stop client:
 /exit
 
 
-Stop server:
-
-CTRL + C
-
-📌 Example CLI Session
-$ python secure_server.py --host 0.0.0.0 --port 5000
-[SERVER] Relay started on 0.0.0.0:5000
-
-$ python secure_client.py --host 127.0.0.1 --port 5000 --name Alice
-[CLIENT] Generating ECDH keys...
-[CLIENT] Exchanging public keys...
-[SUCCESS] Secure Channel Established!
-
-$ python secure_client.py --host 127.0.0.1 --port 5000 --name Bob
-[SUCCESS] Secure Channel Established!
-
-Alice > hey bob!
-Bob   > hi alice, encrypted message received!
-
 🔐 Security Architecture
 1️⃣ Ephemeral ECDH Key Exchange
 
 Each client generates:
 
-A fresh ECC private key
+ECC private key
 
-A public key to share through the server
+ECC public key
 
-Both sides compute:
+Then computes:
 
 shared_secret = ECDH(private_self, public_peer)
 
 2️⃣ HKDF Key Derivation
-
-Shared secret is expanded into a strong AES key:
-
-HKDF(SHA-256) → 256-bit session key
+HKDF(SHA-256) → 256-bit AES session key
 
 3️⃣ AES-256-GCM Encryption
 
-For every message:
+For each message:
 
-Generate a unique random nonce
+Generate random nonce
 
-Encrypt with AES-GCM
+Encrypt using AES-GCM
 
-Send nonce + ciphertext + tag
+Send (nonce + ciphertext + tag)
 
-Recipient verifies integrity and decrypts
+Receiver verifies and decrypts
 
 4️⃣ Blind Relay Architecture
 
-Server only forwards bytes.
-It cannot:
+Server is unable to:
 
-Decrypt
+Read messages
 
-Modify
+Modify messages
 
-Read
+Analyze content
 
-Analyze
-
-This ensures full end-to-end privacy.
+Reconstruct keys
 
 ⚠️ Disclaimer
 
-This project is intended for educational and research purposes.
-It lacks:
+This project is for learning and research.
+It does not include:
 
-Identity key verification
+Identity verification
 
 MITM protection
 
 Long-term key management
 
-For real-world secure messengers, protocols like:
+For production security, protocols like X3DH and Double Ratchet are required.
 
-X3DH
 
-Double Ratchet (Signal Protocol)
-are required.
 
-🤝 Contributing
+Stop server:
 
-We welcome contributions!
-Follow the standard GitHub flow:
-
-1. Create a new branch:
-git checkout -b feature/YourFeature
-
-2. Commit your changes:
-git commit -m "Add your feature"
-
-3. Push your branch:
-git push origin feature/YourFeature
-
-4. Open a pull request to the main branch.
-📄 License
-
-This project is open-source and free to use for learning, research, and experimentation.
+CTRL + C
