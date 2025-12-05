@@ -1,159 +1,74 @@
-🔒 End-to-End Encrypted Chat Relay
-A Secure, Multi-Threaded P2P Messaging System in Python
+End-to-End Encrypted Chat Relay 🔒
 
-A lightweight yet powerful demonstration of true End-to-end Encryption (E2EE) implemented from scratch using Elliptic Curve Cryptography, AES-GCM, and secure socket communication.
-This project shows how modern encrypted messengers derive keys, encrypt messages, and relay ciphertext safely—even through an untrusted server.
+A robust, multi-threaded P2P messaging system built with Python. This project implements true End-to-End Encryption (E2EE) using Elliptic Curve Cryptography and AES-GCM, ensuring a "blind" relay server architecture where the server cannot read message content.
+
 
 🚀 Key Features
-🔐 True End-to-End Encryption (E2EE)
 
-All messages are encrypted locally before leaving the client device.
-The relay server receives only random-looking ciphertext, ensuring complete privacy.
+True E2EE: Encryption happens on the client-side; the server only routes encrypted bytes.
 
-🔄 Perfect Forward Secrecy (PFS)
+Perfect Forward Secrecy: Uses ephemeral ECDH (SECP256R1) keys, regenerated every session to protect past conversations.
 
-Each session uses fresh Ephemeral ECDH (SECP256R1) keys.
-Even if a key is compromised, past conversations remain protected.
+Tamper-Proof Security: Implements AES-256-GCM for authenticated encryption, ensuring immediate detection of message tampering.
 
-🛡️ Authenticated Encryption
+Blind Relay: Zero-knowledge server architecture—no logs, no storage, no decryption.
 
-Powered by AES-256-GCM, ensuring:
+Real-time Communication: Multi-threaded client for simultaneous sending and receiving.
 
-Confidentiality
 
-Integrity
+🛠️ Tech Stack
 
-Tamper detection
+Language: Python 3
 
-Any modification to ciphertext instantly invalidates the message.
+Networking: Raw Sockets & Threading
 
-🧵 Multi-threaded Architecture
+Cryptography: cryptography library
 
-Separate threads handle:
+Exchange: ECDH (SECP256R1)
 
-Sending messages
+KDF: HKDF (SHA-256)
 
-Receiving messages
+Cipher: AES-GCM (256-bit)
 
-…giving a smooth, real-time chat experience.
 
-🛰️ Blind Relay Server
+📋 Quick Start
 
-The server acts purely as a dumb pipe:
-
-No decryption
-
-No key storage
-
-No message inspection
-Exactly how a secure messenger should behave.
-
-🧰 Technology Stack
-Component	Technology
-Language	Python 3
-Networking	socket, threading
-Cryptography	cryptography (hazmat primitives)
-Key Exchange	ECDH (SECP256R1)
-Key Derivation	HKDF (SHA-256)
-Encryption	AES-256-GCM (256-bit)
-📦 Prerequisites
-
-Install dependencies:
+1. Install Dependencies
 
 pip install cryptography
 
 
-Requires Python 3.8+.
+2. Start the Server
 
-⚙️ Running the Project
-
-This system uses:
-
-1 server (relay)
-
-2 or more clients
-
-1️⃣ Start the Server
 python secure_server.py
 
 
-It will begin listening for incoming client connections.
+3. Connect Clients
+Open two new terminals and run the client script in each:
 
-2️⃣ Start Client A
+# Terminal 2 (Client A)
 python secure_client.py
 
-3️⃣ Start Client B
+# Terminal 3 (Client B)
 python secure_client.py
 
 
-Once both clients are connected, the ECDH handshake happens automatically.
-You will see:
-
-[SUCCESS] Secure Channel Established!
+The secure handshake is automatic. You will see [SUCCESS] Secure Channel Established! once connected.
 
 
-You can now chat privately and securely!
+🔐 Security Architecture
 
-🔐 Security Architecture (Deep Dive)
-1. Initial Client Connection
+Handshake: Clients perform an ECDH Key Exchange via the server to generate a shared secret without exposing it.
 
-Each client connects to the relay server via TCP.
+Derivation: The shared secret is salted and passed through HKDF (SHA-256) to derive a unique session key.
 
-2. Ephemeral ECDH Handshake
+Transport: Messages are encrypted with AES-256-GCM using unique nonces, guaranteeing confidentiality and data integrity.
 
-Each client generates:
-
-An ephemeral ECC private key
-
-A matching public key
-
-Public keys are exchanged through the server (server cannot decrypt anything).
-
-Both clients compute:
-
-Shared Secret = ECDH(PrivateKey_self, PublicKey_peer)
-
-3. HKDF Key Derivation
-
-The shared secret is transformed into a strong AES key using:
-
-HKDF(SHA-256) → 256-bit AES Session Key
-
-4. Secure Transport
-
-For every message:
-
-A unique nonce (IV) is generated.
-
-Message is encrypted with AES-256-GCM.
-
-Ciphertext + nonce + auth-tag are sent to the server.
-
-Server broadcasts them as raw bytes.
-
-Recipient:
-
-Verifies integrity using GCM tag
-
-Decrypts the plaintext
-
-This ensures privacy, authenticity, and tamper detection.
 
 ⚠️ Disclaimer
 
-This project is built for educational and research purposes.
-Although it uses industry-standard cryptographic algorithms, it lacks:
-
-Identity verification
-
-Public key signatures
-
-Certificate pinning
-
-Therefore, it is not safe against MITM attacks during the handshake.
-For production-grade messengers, implement signed keys / X3DH / Double Ratchet.
+Designed for educational purposes to demonstrate secure socket programming and cryptographic primitives. Lacks identity signing features required for production-grade protection against active Man-in-the-Middle (MITM) attacks.
 
 📄 License
 
-This project is open-source.
-Feel free to modify, extend, or integrate it into your own applications.
+Open-source project for educational use.
