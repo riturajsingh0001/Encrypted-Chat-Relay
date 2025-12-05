@@ -1,95 +1,159 @@
-End-to-End Encrypted Chat Relay 🔒
+🔒 End-to-End Encrypted Chat Relay
+A Secure, Multi-Threaded P2P Messaging System in Python
 
-A secure, multi-threaded P2P messaging system built with Python. This project demonstrates true End-to-End Encryption (E2EE) using Elliptic Curve Cryptography and AES-GCM, ensuring that the relay server remains completely blind to the message content.
+A lightweight yet powerful demonstration of true End-to-end Encryption (E2EE) implemented from scratch using Elliptic Curve Cryptography, AES-GCM, and secure socket communication.
+This project shows how modern encrypted messengers derive keys, encrypt messages, and relay ciphertext safely—even through an untrusted server.
 
-🚀 Features
+🚀 Key Features
+🔐 True End-to-End Encryption (E2EE)
 
-True End-to-End Encryption: Messages are encrypted locally on the client before transmission. The server only sees encrypted bytes.
+All messages are encrypted locally before leaving the client device.
+The relay server receives only random-looking ciphertext, ensuring complete privacy.
 
-Perfect Forward Secrecy: Uses Ephemeral Elliptic Curve Diffie-Hellman (SECP256R1) keys. Keys are generated fresh for every session and are never stored.
+🔄 Perfect Forward Secrecy (PFS)
 
-Authenticated Encryption: Implements AES-256-GCM to provide both confidentiality and integrity. Any tampering with the ciphertext is immediately detected.
+Each session uses fresh Ephemeral ECDH (SECP256R1) keys.
+Even if a key is compromised, past conversations remain protected.
 
-Blind Relay Architecture: The server acts as a dumb pipe, broadcasting raw bytes without the ability to decrypt them.
+🛡️ Authenticated Encryption
 
-Multi-threaded Client: Handles sending and receiving messages simultaneously for a seamless chat experience.
+Powered by AES-256-GCM, ensuring:
 
-🛠️ Technology Stack
+Confidentiality
 
-Language: Python 3
+Integrity
 
-Networking: socket, threading
+Tamper detection
 
-Cryptography: cryptography library (hazmat primitives)
+Any modification to ciphertext instantly invalidates the message.
 
-Key Exchange: ECDH (SECP256R1)
+🧵 Multi-threaded Architecture
 
-KDF: HKDF (SHA-256)
+Separate threads handle:
 
-Encryption: AES-GCM (256-bit)
+Sending messages
 
-📋 Prerequisites
+Receiving messages
 
-You need Python 3 installed. You also need to install the cryptography library:
+…giving a smooth, real-time chat experience.
+
+🛰️ Blind Relay Server
+
+The server acts purely as a dumb pipe:
+
+No decryption
+
+No key storage
+
+No message inspection
+Exactly how a secure messenger should behave.
+
+🧰 Technology Stack
+Component	Technology
+Language	Python 3
+Networking	socket, threading
+Cryptography	cryptography (hazmat primitives)
+Key Exchange	ECDH (SECP256R1)
+Key Derivation	HKDF (SHA-256)
+Encryption	AES-256-GCM (256-bit)
+📦 Prerequisites
+
+Install dependencies:
+
 pip install cryptography
 
-⚙️ How to Run
 
-This system requires one server instance and at least two client instances.
+Requires Python 3.8+.
 
-1. Start the Server
+⚙️ Running the Project
 
-Open a terminal and run the server. It will listen for incoming connections.
+This system uses:
 
+1 server (relay)
+
+2 or more clients
+
+1️⃣ Start the Server
 python secure_server.py
 
 
-2. Start Client A
+It will begin listening for incoming client connections.
 
-Open a new terminal window and run the client.
+2️⃣ Start Client A
+python secure_client.py
 
+3️⃣ Start Client B
 python secure_client.py
 
 
-3. Start Client B
+Once both clients are connected, the ECDH handshake happens automatically.
+You will see:
 
-Open a third terminal window and run the client.
-
-python secure_client.py
+[SUCCESS] Secure Channel Established!
 
 
-Once the second client joins, the cryptographic handshake will occur automatically. You will see [SUCCESS] Secure Channel Established! on both screens. You can now chat securely!
+You can now chat privately and securely!
 
-🔐 Security Architecture
+🔐 Security Architecture (Deep Dive)
+1. Initial Client Connection
 
-Connection: Clients connect to the central relay server via TCP sockets.
+Each client connects to the relay server via TCP.
 
-Handshake (ECDH):
+2. Ephemeral ECDH Handshake
 
-On startup, each client generates an ephemeral private/public key pair.
+Each client generates:
 
-Clients exchange public keys via the server.
+An ephemeral ECC private key
 
-Each client mathematically derives the same shared secret using their private key and the peer's public key.
+A matching public key
 
-Key Derivation: The shared secret is passed through HKDF (HMAC-based Key Derivation Function) to generate a strong 256-bit AES session key.
+Public keys are exchanged through the server (server cannot decrypt anything).
 
-Transport:
+Both clients compute:
 
-Messages are encrypted using AES-256-GCM.
+Shared Secret = ECDH(PrivateKey_self, PublicKey_peer)
 
-A unique nonce (IV) is generated for every message.
+3. HKDF Key Derivation
 
-The ciphertext + nonce are sent to the server.
+The shared secret is transformed into a strong AES key using:
 
-The server broadcasts the payload to the other client.
+HKDF(SHA-256) → 256-bit AES Session Key
 
-The recipient verifies the integrity tag and decrypts the message.
+4. Secure Transport
+
+For every message:
+
+A unique nonce (IV) is generated.
+
+Message is encrypted with AES-256-GCM.
+
+Ciphertext + nonce + auth-tag are sent to the server.
+
+Server broadcasts them as raw bytes.
+
+Recipient:
+
+Verifies integrity using GCM tag
+
+Decrypts the plaintext
+
+This ensures privacy, authenticity, and tamper detection.
 
 ⚠️ Disclaimer
 
-This project is for educational purposes to demonstrate cryptographic concepts and socket programming. While it uses industry-standard algorithms, it lacks features required for a production-grade secure messenger (e.g., identity verification/signing to prevent Man-in-the-Middle attacks between the client and server during the initial handshake).
+This project is built for educational and research purposes.
+Although it uses industry-standard cryptographic algorithms, it lacks:
+
+Identity verification
+
+Public key signatures
+
+Certificate pinning
+
+Therefore, it is not safe against MITM attacks during the handshake.
+For production-grade messengers, implement signed keys / X3DH / Double Ratchet.
 
 📄 License
 
-This project is open-source. Feel free to use it for learning or as a base for your own projects.
+This project is open-source.
+Feel free to modify, extend, or integrate it into your own applications.
