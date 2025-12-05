@@ -1,74 +1,208 @@
-End-to-End Encrypted Chat Relay 🔒
+🔒 End-to-End Encrypted Chat Relay (CLI Version)
+A Secure, Multi-Threaded Peer-to-Peer Messaging System Built in Python
 
-A robust, multi-threaded P2P messaging system built with Python. This project implements true End-to-End Encryption (E2EE) using Elliptic Curve Cryptography and AES-GCM, ensuring a "blind" relay server architecture where the server cannot read message content.
+This project demonstrates how modern secure messengers implement true End-to-End Encryption (E2EE) using Ephemeral Elliptic Curve Diffie-Hellman (ECDH), HKDF key derivation, and AES-256-GCM authenticated encryption, while the server remains completely blind to message content.
 
+🚀 Features
+🔐 True End-to-End Encryption
 
-🚀 Key Features
+Messages are encrypted before leaving the client.
+The relay server receives only encrypted bytes.
 
-True E2EE: Encryption happens on the client-side; the server only routes encrypted bytes.
+🔄 Perfect Forward Secrecy
 
-Perfect Forward Secrecy: Uses ephemeral ECDH (SECP256R1) keys, regenerated every session to protect past conversations.
+Each session uses fresh Ephemeral ECDH (SECP256R1) keys.
+Even if a session key leaks, all past messages remain protected.
 
-Tamper-Proof Security: Implements AES-256-GCM for authenticated encryption, ensuring immediate detection of message tampering.
+🛡️ Authenticated Encryption (AES-256-GCM)
 
-Blind Relay: Zero-knowledge server architecture—no logs, no storage, no decryption.
+AES-GCM provides:
 
-Real-time Communication: Multi-threaded client for simultaneous sending and receiving.
+Confidentiality
 
+Integrity
 
-🛠️ Tech Stack
+Tamper detection
 
-Language: Python 3
+🛰️ Blind Relay Server
 
-Networking: Raw Sockets & Threading
+Server acts only as a dumb pipe:
 
-Cryptography: cryptography library
+No decryption
 
-Exchange: ECDH (SECP256R1)
+No key storage
 
-KDF: HKDF (SHA-256)
+No message inspection
 
-Cipher: AES-GCM (256-bit)
+🧵 Multi-Threaded Client
 
+Real-time encrypted chat with separate threads for:
 
-📋 Quick Start
+Sending messages
 
-1. Install Dependencies
+Receiving messages
 
+🧰 Technology Stack
+Component	Technology
+Language	Python 3
+Networking	socket, threading
+Key Exchange	ECDH (SECP256R1)
+KDF	HKDF (SHA-256)
+Encryption	AES-256-GCM
+Library	cryptography (hazmat)
+⚙️ How to Run (CLI Mode)
+
+This system includes:
+
+1 Relay Server
+
+2 or more Encrypted Clients
+
+1️⃣ Install Dependencies
 pip install cryptography
 
-
-2. Start the Server
-
-python secure_server.py
+2️⃣ Start the Relay Server
+python secure_server.py --host 0.0.0.0 --port 5000
 
 
-3. Connect Clients
-Open two new terminals and run the client script in each:
+Verbose mode:
 
-# Terminal 2 (Client A)
-python secure_client.py
-
-# Terminal 3 (Client B)
-python secure_client.py
+python secure_server.py --host 0.0.0.0 --port 5000 --verbose
 
 
-The secure handshake is automatic. You will see [SUCCESS] Secure Channel Established! once connected.
+Expected output:
 
+[SERVER] Relay started on 0.0.0.0:5000
+
+3️⃣ Start Client A
+
+Open a new terminal:
+
+python secure_client.py --host 127.0.0.1 --port 5000 --name Alice
+
+4️⃣ Start Client B
+
+Open another terminal:
+
+python secure_client.py --host 127.0.0.1 --port 5000 --name Bob
+
+
+Handshake will automatically complete:
+
+[SUCCESS] Secure Channel Established!
+
+5️⃣ Start Secure Chatting
+Alice > hello bob 👋
+Bob   > encrypted message received 🔐
+
+
+Encrypted messages flow securely through the relay server.
+
+6️⃣ Stop the System
+
+Stop client:
+
+/exit
+
+
+Stop server:
+
+CTRL + C
+
+📌 Example CLI Session
+$ python secure_server.py --host 0.0.0.0 --port 5000
+[SERVER] Relay started on 0.0.0.0:5000
+
+$ python secure_client.py --host 127.0.0.1 --port 5000 --name Alice
+[CLIENT] Generating ECDH keys...
+[CLIENT] Exchanging public keys...
+[SUCCESS] Secure Channel Established!
+
+$ python secure_client.py --host 127.0.0.1 --port 5000 --name Bob
+[SUCCESS] Secure Channel Established!
+
+Alice > hey bob!
+Bob   > hi alice, encrypted message received!
 
 🔐 Security Architecture
+1️⃣ Ephemeral ECDH Key Exchange
 
-Handshake: Clients perform an ECDH Key Exchange via the server to generate a shared secret without exposing it.
+Each client generates:
 
-Derivation: The shared secret is salted and passed through HKDF (SHA-256) to derive a unique session key.
+A fresh ECC private key
 
-Transport: Messages are encrypted with AES-256-GCM using unique nonces, guaranteeing confidentiality and data integrity.
+A public key to share through the server
 
+Both sides compute:
+
+shared_secret = ECDH(private_self, public_peer)
+
+2️⃣ HKDF Key Derivation
+
+Shared secret is expanded into a strong AES key:
+
+HKDF(SHA-256) → 256-bit session key
+
+3️⃣ AES-256-GCM Encryption
+
+For every message:
+
+Generate a unique random nonce
+
+Encrypt with AES-GCM
+
+Send nonce + ciphertext + tag
+
+Recipient verifies integrity and decrypts
+
+4️⃣ Blind Relay Architecture
+
+Server only forwards bytes.
+It cannot:
+
+Decrypt
+
+Modify
+
+Read
+
+Analyze
+
+This ensures full end-to-end privacy.
 
 ⚠️ Disclaimer
 
-Designed for educational purposes to demonstrate secure socket programming and cryptographic primitives. Lacks identity signing features required for production-grade protection against active Man-in-the-Middle (MITM) attacks.
+This project is intended for educational and research purposes.
+It lacks:
 
+Identity key verification
+
+MITM protection
+
+Long-term key management
+
+For real-world secure messengers, protocols like:
+
+X3DH
+
+Double Ratchet (Signal Protocol)
+are required.
+
+🤝 Contributing
+
+We welcome contributions!
+Follow the standard GitHub flow:
+
+1. Create a new branch:
+git checkout -b feature/YourFeature
+
+2. Commit your changes:
+git commit -m "Add your feature"
+
+3. Push your branch:
+git push origin feature/YourFeature
+
+4. Open a pull request to the main branch.
 📄 License
 
-Open-source project for educational use.
+This project is open-source and free to use for learning, research, and experimentation.
